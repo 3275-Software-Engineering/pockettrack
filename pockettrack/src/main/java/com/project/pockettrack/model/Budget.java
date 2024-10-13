@@ -1,4 +1,10 @@
 package com.project.pockettrack.model;
+/*
+ * Class Name: Budget.java
+ * Author: Tracy
+ * Date: 2024-10-13
+ * Purpose: 
+ */
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 

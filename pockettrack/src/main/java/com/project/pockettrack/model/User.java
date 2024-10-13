@@ -1,5 +1,10 @@
 package com.project.pockettrack.model;
-
+/*
+ * Class Name: User.java
+ * Author: Tracy
+ * Date: 2024-10-13
+ * Purpose: 
+ */
 import jakarta.persistence.*;
 
 import jakarta.persistence.Column;
