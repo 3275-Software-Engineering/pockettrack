@@ -80,24 +80,24 @@ public class UserService {
         return userRepository.save(user);
     }
     
-    // 更新用户信息
+    // update user info
     public Optional<User> updateUser(Integer userId, User userDetails) {
         return userRepository.findById(userId).map(user -> {
             user.setUsername(userDetails.getUsername());
             user.setEmail(userDetails.getEmail());
             user.setPhone(userDetails.getPhone());
-            user.setUpdatedAt(new Timestamp(System.currentTimeMillis())); // 更新修改时间
-            return userRepository.save(user); // 保存更新
+            user.setUpdatedAt(new Timestamp(System.currentTimeMillis())); // update time
+            return userRepository.save(user); // save updated
         });
     }
 
-    // 删除用户
+    // delete user
     public boolean deleteUser(Integer userId) {
         if (userRepository.existsById(userId)) {
             userRepository.deleteById(userId);
-            return true; // 成功删除
+            return true; // delete sucessfully
         }
-        return false; // 用户未找到
+        return false; // no user found
     }
     
 }

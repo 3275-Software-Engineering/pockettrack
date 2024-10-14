@@ -33,7 +33,7 @@ public class SavingGoals {
 	@JsonFormat(shape = JsonFormat.Shape.STRING)
 	private BigDecimal targetAmount;
 	
-	@Column(name = "dealine_period")
+	@Column(name = "deadline_period")
 	private String deadlinePeriod;
 
 	@Column(name = "deadline_date")
@@ -48,10 +48,10 @@ public class SavingGoals {
 	private BigDecimal currentAmount;
 
 	
-	@Column(name = "date_created")
+	@Column(name = "created_at")
 	private Timestamp dateCreated;
 	
-	@Column(name = "date_updated")
+	@Column(name = "updated_at")
 	private Timestamp dateUpdated;
 	
 	public SavingGoals() {
