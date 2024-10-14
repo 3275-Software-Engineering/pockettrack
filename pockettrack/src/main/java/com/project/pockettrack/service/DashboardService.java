@@ -20,13 +20,10 @@ import com.project.pockettrack.model.SavingGoalsRepository;
 import com.project.pockettrack.model.Transaction;
 import com.project.pockettrack.model.TransactionRepository;
 import com.project.pockettrack.model.TransactionType;
-import com.project.pockettrack.model.UserRepository;
 
 @Service
 public class DashboardService {
 
-	@Autowired
-	private UserRepository userRepository;
 	@Autowired
 	private TransactionRepository transactionRepository;
 	@Autowired
@@ -49,7 +46,7 @@ public class DashboardService {
 		dashboard.setTotalIncome(totalIncome);
 		dashboard.setTotalExpense(totalExpense);
 
-		// 3. Use stream to sum up all the total saving goal
+		// 2. Use stream to sum up all the total saving goal
 		List<SavingGoals> savingGoalsList = savingGoalsRepository.findByUser_UserId(userId);
 		// Calculate the total saving goal amount
 		double totalSavingGoal = savingGoalsList.stream()
@@ -61,7 +58,7 @@ public class DashboardService {
 		
 
 		List<Budget> budgetList = budgetRepository.findByUserId(userId);
-		// 4. Use stream to sum up all totalBudget values
+		// 3. Use stream to sum up all totalBudget values
 		double totalBudget = budgetList.stream()
 		    .mapToDouble(b -> b.getBudgetAmount().doubleValue())  // Convert BigDecimal to double
 		    .sum();  // Sum up all totalBudget values
@@ -70,7 +67,7 @@ public class DashboardService {
 		dashboard.setBudgetGoal(totalBudget);
 
 		
-        // 5. Group expenses and income by category
+        // 4. Group expenses and income by category
 		Map<String, Double> incomeByCategory = transactions.stream()
 			    .filter(t -> t.getTransactionType() == TransactionType.income)
 			    .collect(Collectors.groupingBy(
@@ -88,7 +85,7 @@ public class DashboardService {
 		dashboard.setIncomeByCategory(incomeByCategory);
 		dashboard.setExpenseByCategory(expenseByCategory);
 		
-        // Group income by year and month
+        // 5. Group income by year and month
         Map<String, Double> incomeByMonth = transactions.stream()
                 .filter(t -> t.getTransactionType() == TransactionType.income)
                 .collect(Collectors.groupingBy(
@@ -96,7 +93,7 @@ public class DashboardService {
                     Collectors.summingDouble(t -> t.getTransactionAmount().doubleValue())
                 ));
         
-        // Sort incomeByMonth by the month key and collect into a LinkedHashMap
+        // 6. Sort incomeByMonth by the month key and collect into a LinkedHashMap
         Map<String, Double> sortedIncomeByMonth = incomeByMonth.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey()) // Sort by the formatted date key (yyyyMM)
                 .collect(Collectors.toMap(
