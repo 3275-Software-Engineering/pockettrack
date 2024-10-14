@@ -85,11 +85,13 @@ public class DashboardService {
 		dashboard.setIncomeByCategory(incomeByCategory);
 		dashboard.setExpenseByCategory(expenseByCategory);
 		
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM");
+        
         // 5. Group income by year and month
         Map<String, Double> incomeByMonth = transactions.stream()
                 .filter(t -> t.getTransactionType() == TransactionType.income)
                 .collect(Collectors.groupingBy(
-                    transaction -> formatDate(transaction.getTransactionDate()), // Use the transaction date
+                    transaction -> transaction.getTransactionDate().format(dateFormatter), // Format LocalDate
                     Collectors.summingDouble(t -> t.getTransactionAmount().doubleValue())
                 ));
         
@@ -107,7 +109,7 @@ public class DashboardService {
         Map<String, Double> expenseByMonth = transactions.stream()
                 .filter(t -> t.getTransactionType() == TransactionType.expense)
                 .collect(Collectors.groupingBy(
-                    transaction -> formatDate(transaction.getTransactionDate()), // Use the transaction date
+                    transaction -> transaction.getTransactionDate().format(dateFormatter), // Use the transaction date
                     Collectors.summingDouble(t -> t.getTransactionAmount().doubleValue())
                 ));
         

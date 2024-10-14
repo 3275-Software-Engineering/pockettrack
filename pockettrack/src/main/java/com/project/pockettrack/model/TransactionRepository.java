@@ -6,9 +6,10 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 @Repository
-public interface TransactionRepository extends JpaRepository<Transaction, Integer>{
+public interface TransactionRepository extends JpaRepository<Transaction, Integer>, JpaSpecificationExecutor<Transaction>{
 
 	Optional<Transaction> findByTransactionId(int transactionId);
 	
@@ -21,5 +22,5 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
 	Optional<Transaction> findByTransactionCategoryName(String transactionCategoryName);
     
 	Optional<Transaction> findByCurrency(String currency); 
-    
+	
 }

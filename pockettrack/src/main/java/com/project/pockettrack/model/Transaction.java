@@ -17,7 +17,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-
+import java.time.LocalDate;
 @Entity
 @Table(name = "transactions")
 public class Transaction {
@@ -32,7 +32,7 @@ public class Transaction {
 	private User user;
 	
 	@Column(name = "transaction_date")
-	private Date transactionDate;
+	private LocalDate transactionDate;
 	
 	@Column(name = "transaction_type")
 	@Enumerated(EnumType.STRING)
@@ -84,11 +84,11 @@ public class Transaction {
 		this.user = user;
 	}
 
-	public Date getTransactionDate() {
+	public LocalDate getTransactionDate() {
 		return transactionDate;
 	}
 
-	public void setTransactionDate(Date transactionDate) {
+	public void setTransactionDate(LocalDate transactionDate) {
 		this.transactionDate = transactionDate;
 	}
 
