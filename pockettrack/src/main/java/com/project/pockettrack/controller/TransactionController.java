@@ -72,6 +72,10 @@ public class TransactionController {
 
                 if (startDate != null && endDate != null) {
                     predicates.add(cb.between(root.get("transactionDate"), startDate, endDate));
+                }else if(startDate !=null) {
+                	predicates.add(cb.greaterThanOrEqualTo(root.get("transactionDate"), startDate));
+                }else if(endDate !=null) {
+                	predicates.add(cb.lessThanOrEqualTo(root.get("transactionDate"), endDate));
                 }
                 if (transactionType != null) {
                 	predicates.add(cb.equal(root.get("transactionType"),transactionType));
@@ -94,10 +98,10 @@ public class TransactionController {
                 if (minAmount != null && maxAmount != null) {
                     predicates.add(cb.between(root.get("transactionAmount"), minAmount, maxAmount));
                 }
-                else if (minAmount != null && maxAmount == null) {
+                else if (minAmount != null ) {
                     predicates.add(cb.greaterThanOrEqualTo(root.get("transactionAmount"), minAmount));
                 }
-                else if (minAmount == null && maxAmount != null) {
+                else if (maxAmount != null) {
                     predicates.add(cb.lessThanOrEqualTo(root.get("transactionAmount"), maxAmount));
                 }
                 
