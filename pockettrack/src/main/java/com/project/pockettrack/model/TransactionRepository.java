@@ -23,4 +23,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
     
 	Optional<Transaction> findByCurrency(String currency); 
 	
+	List<Transaction> findByUser_UserIdAndTransactionDateBetween(int userId, LocalDate startDate, LocalDate endDate);
+	
 }
