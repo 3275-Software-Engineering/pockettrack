@@ -48,6 +48,7 @@ public class TransactionController {
             @RequestParam(required = false, defaultValue = "0") int transactionId, // default to 0 if not provided
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String transactionType,
             @RequestParam(required = false) String transactionCategoryName,
             @RequestParam(required = false) String paymentMethodName,
             @RequestParam(required = false) String currency,
@@ -72,6 +73,9 @@ public class TransactionController {
                 if (startDate != null && endDate != null) {
                     predicates.add(cb.between(root.get("transactionDate"), startDate, endDate));
                 }
+                if (transactionType != null) {
+                	predicates.add(cb.equal(root.get("transactionType"),transactionType));
+                }
 
                 if (transactionCategoryName != null) {
                     predicates.add(cb.like(cb.lower(root.get("transactionCategoryName")),
@@ -90,6 +94,13 @@ public class TransactionController {
                 if (minAmount != null && maxAmount != null) {
                     predicates.add(cb.between(root.get("transactionAmount"), minAmount, maxAmount));
                 }
+                else if (minAmount != null && maxAmount == null) {
+                    predicates.add(cb.greaterThanOrEqualTo(root.get("transactionAmount"), minAmount));
+                }
+                else if (minAmount == null && maxAmount != null) {
+                    predicates.add(cb.lessThanOrEqualTo(root.get("transactionAmount"), maxAmount));
+                }
+                
 
                 // Combine all conditions using AND logic
                 return cb.and(predicates.toArray(new Predicate[0]));
@@ -188,7 +199,7 @@ public class TransactionController {
 
             // Update the existing Transaction object
             existingTransaction.setUser(userOptional.get());
-            existingTransaction.setTransactionDate(LocalDate.now()); // Set to current date
+            existingTransaction.setTransactionDate(transaction.getTransactionDate()); // Set to current date
             existingTransaction.setTransactionType(transactionType);
             existingTransaction.setPaymentMethodName(transaction.getPaymentMethodName());
             existingTransaction.setCurrency(transaction.getCurrency());
@@ -196,16 +207,10 @@ public class TransactionController {
             existingTransaction.setNote(transaction.getNote());
             // Set dateCreated and dateUpdated
             if (transaction.getDateCreated() != null) {
-            	transaction.setDateCreated(transaction.getDateCreated());
-            } else {
-            	transaction.setDateCreated(new Timestamp(System.currentTimeMillis())); // Use current time
-            }
-
-            if (transaction.getDateUpdated() != null) {
-            	transaction.setDateUpdated(transaction.getDateUpdated());
-            } else {
-            	transaction.setDateUpdated(new Timestamp(System.currentTimeMillis())); // Use current time
-            }
+            	existingTransaction.setDateCreated(transaction.getDateCreated());
+            } 
+            existingTransaction.setDateUpdated(new Timestamp(System.currentTimeMillis())); // Use current time
+            
             
             // Save the updated Transaction
             transactionRepository.save(existingTransaction);
