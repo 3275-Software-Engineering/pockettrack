@@ -1,6 +1,6 @@
 package com.project.pockettrack.controller;
 
-import java.sql.Date;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +30,7 @@ import com.project.pockettrack.model.User;
 import com.project.pockettrack.model.UserRepository;
 
 import jakarta.persistence.criteria.Predicate;
+import jakarta.transaction.Transactional;
 
 
 @CrossOrigin(origins = "http://localhost:8081")
@@ -71,6 +72,12 @@ public class TransactionController {
 
                 if (startDate != null && endDate != null) {
                     predicates.add(cb.between(root.get("transactionDate"), startDate, endDate));
+                }else if(startDate != null) {
+                    // If only startDate is provided, filter by startDate and beyond
+                    predicates.add(cb.greaterThanOrEqualTo(root.get("transactionDate"), startDate));
+                }else if(endDate != null) {
+                	// If only endDate is provided, filter by endDate and before
+                    predicates.add(cb.lessThanOrEqualTo(root.get("transactionDate"), endDate));
                 }
 
                 if (transactionCategoryName != null) {
@@ -89,10 +96,21 @@ public class TransactionController {
 
                 if (minAmount != null && maxAmount != null) {
                     predicates.add(cb.between(root.get("transactionAmount"), minAmount, maxAmount));
+                }else if(minAmount != null) {
+                	// If only minAmount is provided, filter by minAmount and beyond
+                    predicates.add(cb.greaterThanOrEqualTo(root.get("transactionAmount"), minAmount));
+                }else if(maxAmount != null){
+                	// If only maxAmount is provided, filter by maxAmount and before
+                    predicates.add(cb.lessThanOrEqualTo(root.get("transactionAmount"), maxAmount));
                 }
 
                 // Combine all conditions using AND logic
-                return cb.and(predicates.toArray(new Predicate[0]));
+                query.where(cb.and(predicates.toArray(new Predicate[0])));
+
+                // Add ORDER BY transactionId
+                query.orderBy(cb.asc(root.get("transactionId"))); // Ascending order by transactionId
+
+                return query.getRestriction();
             });
 
             return new ResponseEntity<>(transactions, HttpStatus.OK);
@@ -122,33 +140,33 @@ public class TransactionController {
             Transaction newTransaction = new Transaction();
             newTransaction.setUser(userOptional.get());  // Set the associated User object
             
-            // Set transactionDate to current date
-            newTransaction.setTransactionDate(LocalDate.now());
+           // Check if transactionDate is provided, if not, set to current date
+            if (transaction.getTransactionDate() != null) {
+                newTransaction.setTransactionDate(transaction.getTransactionDate());
+            } else {
+                newTransaction.setTransactionDate(LocalDate.now()); // Set to current date if no value is provided
+            }
             
             // Set other properties
             newTransaction.setTransactionType(transactionType); // Set valid transaction type
             newTransaction.setPaymentMethodName(transaction.getPaymentMethodName());
+            newTransaction.setTransactionCategoryName(transaction.getTransactionCategoryName());
             newTransaction.setCurrency(transaction.getCurrency());
-            newTransaction.setTransactionAmount(transaction.getTransactionAmount());
+            // Set transaction amount, default to 0.0 if not provided
+            if (transaction.getTransactionAmount() != null) {
+                newTransaction.setTransactionAmount(transaction.getTransactionAmount());
+            } else {
+                newTransaction.setTransactionAmount(BigDecimal.ZERO); // Default to 0.0 if no value is provided
+            }
             newTransaction.setNote(transaction.getNote());
             
-            // Set dateCreated and dateUpdated
-            if (transaction.getDateCreated() != null) {
-                newTransaction.setDateCreated(transaction.getDateCreated());
-            } else {
-                newTransaction.setDateCreated(new Timestamp(System.currentTimeMillis())); // Use current time
-            }
-
-            if (transaction.getDateUpdated() != null) {
-                newTransaction.setDateUpdated(transaction.getDateUpdated());
-            } else {
-                newTransaction.setDateUpdated(new Timestamp(System.currentTimeMillis())); // Use current time
-            }
+            newTransaction.setDateCreated(new Timestamp(System.currentTimeMillis())); // Use current time
             
             // Save the new Transaction
             Transaction savedTransaction = transactionRepository.save(newTransaction);
             
             return new ResponseEntity<>("Transaction created successfully: " + savedTransaction.getTransactionId(), HttpStatus.CREATED);
+        
         } catch (Exception e) {
             return new ResponseEntity<>("An error occurred: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -179,6 +197,11 @@ public class TransactionController {
             if (!userOptional.isPresent()) {
                 return new ResponseEntity<>("User not found", HttpStatus.BAD_REQUEST);
             }
+            
+            // Check if the user ID is being modified
+            if (existingTransaction.getUser().getUserId() != transaction.getUser().getUserId()) {
+                return new ResponseEntity<>("User ID cannot be modified", HttpStatus.BAD_REQUEST);
+            }
 
             // Validate the transaction type
             TransactionType transactionType = transaction.getTransactionType();
@@ -188,24 +211,19 @@ public class TransactionController {
 
             // Update the existing Transaction object
             existingTransaction.setUser(userOptional.get());
-            existingTransaction.setTransactionDate(LocalDate.now()); // Set to current date
+         // Check if transactionDate is provided, if not, set to current date
+            if (transaction.getTransactionDate() != null) {
+            	existingTransaction.setTransactionDate(transaction.getTransactionDate());
+            } else {
+            	existingTransaction.setTransactionDate(LocalDate.now()); // Set to current date if no value is provided
+            }
             existingTransaction.setTransactionType(transactionType);
             existingTransaction.setPaymentMethodName(transaction.getPaymentMethodName());
+            existingTransaction.setTransactionCategoryName(transaction.getTransactionCategoryName());
             existingTransaction.setCurrency(transaction.getCurrency());
             existingTransaction.setTransactionAmount(transaction.getTransactionAmount());
             existingTransaction.setNote(transaction.getNote());
-            // Set dateCreated and dateUpdated
-            if (transaction.getDateCreated() != null) {
-            	transaction.setDateCreated(transaction.getDateCreated());
-            } else {
-            	transaction.setDateCreated(new Timestamp(System.currentTimeMillis())); // Use current time
-            }
-
-            if (transaction.getDateUpdated() != null) {
-            	transaction.setDateUpdated(transaction.getDateUpdated());
-            } else {
-            	transaction.setDateUpdated(new Timestamp(System.currentTimeMillis())); // Use current time
-            }
+            existingTransaction.setDateUpdated(new Timestamp(System.currentTimeMillis())); // Use current time
             
             // Save the updated Transaction
             transactionRepository.save(existingTransaction);
@@ -234,13 +252,21 @@ public class TransactionController {
         }
     }
 
-    // Delete all transactions
-    @DeleteMapping("/transactions")
-    public ResponseEntity<String> deleteAllTransactions() {
+    // Delete all transactions for a specific user
+    @DeleteMapping("/users/{userId}/transactions")
+    @Transactional  
+    public ResponseEntity<String> deleteAllTransactions(@PathVariable int userId) {
         try {
-            // Delete all transactions in the repository
-            transactionRepository.deleteAll();
-            return new ResponseEntity<>("All transactions deleted successfully", HttpStatus.OK);
+            // Check if the user exists
+            Optional<User> userOptional = userRepository.findById(userId);
+            if (!userOptional.isPresent()) {
+                return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+            }
+
+            // Delete all transactions for the given user
+            transactionRepository.deleteByUser_UserId(userId);
+
+            return new ResponseEntity<>("All transactions for user ID " + userId + " deleted successfully", HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("An error occurred: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }

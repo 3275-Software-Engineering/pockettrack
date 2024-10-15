@@ -22,7 +22,7 @@ import java.time.LocalDate;
 @Table(name = "transactions")
 public class Transaction {
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int transactionId;
 
 	// A transaction is only associated with a User object
