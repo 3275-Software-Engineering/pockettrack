@@ -25,34 +25,41 @@ public class SavingGoals {
 
 	// A transaction is only associated with a User object
 	// Using FetchType.EAGER will not significantly harm the efficiency
-	@ManyToOne(fetch = FetchType.EAGER, optional = false)
+	@ManyToOne(fetch = FetchType.EAGER, optional = false) //Multiple SavingGoals can be associated with one User
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 	
+	//目標金額 (targetAmount)
 	@Column(name = "target_amount", precision =15,scale = 2)
 	@JsonFormat(shape = JsonFormat.Shape.STRING)
 	private BigDecimal targetAmount;
 	
+	//截止期限期間 (deadlinePeriod)
 	@Column(name = "deadline_period")
 	private String deadlinePeriod;
 
+	//截止日期 (deadlineDate)
 	@Column(name = "deadline_date")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate deadlineDate;
 	
+	//目的 (purpose)
 	@Column(name = "purpose")
 	private String purpose;
 	
+	//當前金額 (currentAmount)
 	@Column(name = "current_amount", precision =15,scale = 2)
 	@JsonFormat(shape = JsonFormat.Shape.STRING)
 	private BigDecimal currentAmount;
 
-	
+	//創建與更新時間 (dateCreated 和 dateUpdated)
 	@Column(name = "created_at")
 	private Timestamp dateCreated;
 	
 	@Column(name = "updated_at")
 	private Timestamp dateUpdated;
+	
+	
 	
 	public SavingGoals() {
 
@@ -61,6 +68,8 @@ public class SavingGoals {
 	public SavingGoals(int goalId) {
 		this.goalId = goalId;
 	}
+	
+	//Getter and Setter Method
 
 	public int getGoalId() {
 		return goalId;
