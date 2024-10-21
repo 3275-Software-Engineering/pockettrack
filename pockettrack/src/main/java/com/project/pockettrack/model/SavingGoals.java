@@ -22,7 +22,7 @@ import jakarta.validation.constraints.NotNull;
 @Table(name = "savings_goals")
 public class SavingGoals {
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int goalId;
 
 	// A transaction is only associated with a User object

@@ -19,9 +19,11 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.*;
 
+@CrossOrigin(origins = "http://localhost:8081")
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:8081")
+
+
 public class SavingGoalsController {
 
     @Autowired
@@ -50,11 +52,10 @@ public class SavingGoalsController {
      * 创建新的储蓄目标
      */
     @PostMapping("/saving-goals")
-    public ResponseEntity<String> createSavingGoal(@Valid @RequestBody SavingGoals savingGoal) {
+    public ResponseEntity<String> createSavingGoal(@RequestBody SavingGoals savingGoal) {
         try {
             // 验证用户是否存在
-            Integer userId = savingGoal.getUser().getUserId();
-            Optional<User> userOptional = userRepository.findById(userId);
+            Optional<User> userOptional = userRepository.findById(savingGoal.getUser().getUserId());
             if (!userOptional.isPresent()) {
                 return new ResponseEntity<>("User not found", HttpStatus.BAD_REQUEST);
             }
@@ -93,9 +94,15 @@ public class SavingGoalsController {
     /**
      * 更新储蓄目标
      */
-    @PutMapping("/saving-goals/{goalId}")
-    public ResponseEntity<String> updateSavingGoal(@PathVariable int goalId, @Valid @RequestBody SavingGoals savingGoal) {
+    @PutMapping("/saving-goals/{userId}/{goalId}")
+    public ResponseEntity<String> updateSavingGoal(@PathVariable int userId, @PathVariable int goalId, @Valid @RequestBody SavingGoals savingGoal) {
         try {
+        	// 验证用户是否存在
+            Optional<User> userOptional = userRepository.findById(savingGoal.getUser().getUserId());
+            if (!userOptional.isPresent()) {
+                return new ResponseEntity<>("User not found", HttpStatus.BAD_REQUEST);
+            }
+            
             // 查找现有的储蓄目标
             Optional<SavingGoals> existingGoalOptional = savingGoalsRepository.findById(goalId);
             if (!existingGoalOptional.isPresent()) {
@@ -150,8 +157,8 @@ public class SavingGoalsController {
     /**
      * 删除特定的储蓄目标
      */
-    @DeleteMapping("/saving-goals/{goalId}")
-    public ResponseEntity<String> deleteSavingGoal(@PathVariable int goalId) {
+    @DeleteMapping("/saving-goals/{userId}/{goalId}")
+    public ResponseEntity<String> deleteSavingGoal(@PathVariable int userId,@PathVariable int goalId) {
         try {
             // 检查储蓄目标是否存在
             Optional<SavingGoals> goalOptional = savingGoalsRepository.findById(goalId);
@@ -170,8 +177,8 @@ public class SavingGoalsController {
     /**
      * 删除所有储蓄目标
      */
-    @DeleteMapping("/saving-goals")
-    public ResponseEntity<String> deleteAllSavingGoals() {
+    @DeleteMapping("/{userId}/saving-goals")
+    public ResponseEntity<String> deleteAllSavingGoals(@PathVariable int userId) {
         try {
             savingGoalsRepository.deleteAll();
             return new ResponseEntity<>("All saving goals deleted successfully", HttpStatus.OK);
@@ -269,5 +276,4 @@ public class SavingGoalsController {
         }
     }
 }
-
 
