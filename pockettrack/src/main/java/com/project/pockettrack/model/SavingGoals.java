@@ -15,12 +15,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "savings_goals")
 public class SavingGoals {
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int goalId;
 
 	// A transaction is only associated with a User object
@@ -29,9 +31,15 @@ public class SavingGoals {
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 	
+	@Column(name = "month")
+    @NotNull(message = "month cant be empty")
+    private int month; // 1-12
+	
 	//目標金額 (targetAmount)
 	@Column(name = "target_amount", precision =15,scale = 2)
 	@JsonFormat(shape = JsonFormat.Shape.STRING)
+	@NotNull(message = "目标金额不能为空")
+    @DecimalMin(value = "0.0", inclusive = false, message = "targetAmount must greater than 0")
 	private BigDecimal targetAmount;
 	
 	//截止期限期間 (deadlinePeriod)
@@ -87,6 +95,14 @@ public class SavingGoals {
 		this.user = user;
 	}
 
+	public int getMonth() {
+        return month;
+    }
+
+    public void setMonth(int month) {
+        this.month = month;
+    }
+    
 	public BigDecimal getTargetAmount() {
 		return targetAmount;
 	}

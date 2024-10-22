@@ -49,6 +49,7 @@ public class TransactionController {
             @RequestParam(required = false, defaultValue = "0") int transactionId, // default to 0 if not provided
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String transactionType,
             @RequestParam(required = false) String transactionCategoryName,
             @RequestParam(required = false) String paymentMethodName,
             @RequestParam(required = false) String currency,
@@ -72,12 +73,15 @@ public class TransactionController {
 
                 if (startDate != null && endDate != null) {
                     predicates.add(cb.between(root.get("transactionDate"), startDate, endDate));
-                }else if(startDate != null) {
+                }else if(startDate != null && endDate == null) {
                     // If only startDate is provided, filter by startDate and beyond
                     predicates.add(cb.greaterThanOrEqualTo(root.get("transactionDate"), startDate));
-                }else if(endDate != null) {
+                }else if(startDate == null && endDate != null) {
                 	// If only endDate is provided, filter by endDate and before
                     predicates.add(cb.lessThanOrEqualTo(root.get("transactionDate"), endDate));
+                }
+                if (transactionType != null) {
+                	predicates.add(cb.equal(root.get("transactionType"),transactionType));
                 }
 
                 if (transactionCategoryName != null) {
@@ -96,13 +100,13 @@ public class TransactionController {
 
                 if (minAmount != null && maxAmount != null) {
                     predicates.add(cb.between(root.get("transactionAmount"), minAmount, maxAmount));
-                }else if(minAmount != null) {
+                }else if(minAmount != null && maxAmount == null) {
                 	// If only minAmount is provided, filter by minAmount and beyond
                     predicates.add(cb.greaterThanOrEqualTo(root.get("transactionAmount"), minAmount));
-                }else if(maxAmount != null){
+                }else if(minAmount == null && maxAmount != null){
                 	// If only maxAmount is provided, filter by maxAmount and before
                     predicates.add(cb.lessThanOrEqualTo(root.get("transactionAmount"), maxAmount));
-                }
+                }       
 
                 // Combine all conditions using AND logic
                 query.where(cb.and(predicates.toArray(new Predicate[0])));
@@ -211,18 +215,25 @@ public class TransactionController {
 
             // Update the existing Transaction object
             existingTransaction.setUser(userOptional.get());
+
          // Check if transactionDate is provided, if not, set to current date
             if (transaction.getTransactionDate() != null) {
             	existingTransaction.setTransactionDate(transaction.getTransactionDate());
             } else {
             	existingTransaction.setTransactionDate(LocalDate.now()); // Set to current date if no value is provided
             }
+
             existingTransaction.setTransactionType(transactionType);
             existingTransaction.setPaymentMethodName(transaction.getPaymentMethodName());
             existingTransaction.setTransactionCategoryName(transaction.getTransactionCategoryName());
             existingTransaction.setCurrency(transaction.getCurrency());
             existingTransaction.setTransactionAmount(transaction.getTransactionAmount());
             existingTransaction.setNote(transaction.getNote());
+
+            // Set dateCreated and dateUpdated
+            if (transaction.getDateCreated() != null) {
+            	existingTransaction.setDateCreated(transaction.getDateCreated());
+            } 
             existingTransaction.setDateUpdated(new Timestamp(System.currentTimeMillis())); // Use current time
             
             // Save the updated Transaction
