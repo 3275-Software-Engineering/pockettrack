@@ -1,4 +1,4 @@
-FROM openjdk:23-ea-jre
+FROM openjdk:21-jdk
 
 LABEL authors="Lenny"
 
